@@ -6,7 +6,8 @@ router.post('/',function(req,res){
 	var host_id = req.body['host_id'];
 	var password = req.body['password'];
 	var host_id_pic = req.body['host_id_pic'];
-	users.regist(host_id,password,host_id_pic,function(msg){
+	var email = req.body['email'];
+	users.regist(email,host_id,password,host_id_pic,function(msg){
 		res.write(msg.toString());
 		res.end();
 	});

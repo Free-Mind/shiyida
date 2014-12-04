@@ -3,9 +3,9 @@ var users = require('../models/users.js');
 var router = express.Router();
 //handle_login
 router.post('/',function(req,res){
-	var username = req.body['host_id'];
+	var host_id = req.body['host_id'];
 	var password = req.body['password'];
-	users.login(username,password,function(msg){
+	users.login(host_id,password,function(msg){
 		console.log("msg:"+msg);
 		res.write(msg.toString());
 		res.end();
