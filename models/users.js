@@ -80,7 +80,7 @@ exports.login = function(host_id,password,call){
 };
 exports.regist = function(email,host_id,password,host_id_pic,call){
 	async.auto({
-		check:function(callback){
+		check_username:function(callback){
 			client.hget("username:uid",host_id,function(err,uid){
 				console.log("username:"+host_id);
 				console.log("username:uid:"+uid);
@@ -92,14 +92,24 @@ exports.regist = function(email,host_id,password,host_id_pic,call){
 				}
 			});
 		},
-		get_next_uid:['check',function(callback){
+		check_email:function(callback){
+			client.hget("email:uid",host_id,function(err,uid){
+				if(uid != null){
+					callback("0",uid);
+				}
+				else{
+					callback(err,uid);
+				}
+			})
+		},
+		get_next_uid:['check_username','check_email',function(callback){
 			client.hget('global','nextUid',function(err,next_uid){
 				console.log("next_uid"+next_uid);
 				callback(err,next_uid);
 			});
 		}
 		],
-		set_username_id:['check','get_next_uid',function(callback,results){//参数顺序：callback,results
+		set_username_id:['check_username','check_email','get_next_uid',function(callback,results){//参数顺序：callback,results
 			client.hmset('username:uid',host_id,results.get_next_uid,function(err,status){
 				console.log(err);
 				callback(err,status);
@@ -107,15 +117,15 @@ exports.regist = function(email,host_id,password,host_id_pic,call){
 		}
 		],
 		//添加用户信息；username，passord,picture,
-		set_infor:['check','get_next_uid',function(callback,results){
+		set_infor:['check_username','check_email','get_next_uid',function(callback,results){
 			client.hmset('user:'+results.get_next_uid,'username',host_id,'password',password,'picture',host_id_pic,'email',email,function(err,status){
 				console.log(err);
 				callback(err,status);
 			});
 		}
 		],
-		set_email_id:['set_infor',function(callback){
-			client.hmset('email:uid',email,host_id,function(err,status){
+		set_email_id:['set_infor','get_next_uid',function(callback,results){
+			client.hmset('email:uid',email,results.get_next_uid,function(err,status){
 				callback(err,status);
 			});
 		}	
